@@ -10,7 +10,7 @@ type User struct {
 	Phone          string    `json:"phone"`
 	AppPassword    string    `json:"app_password"`
 	WhatsappNumber string    `json:"whatsapp_number"`
-	Password       string    `json:"password"`
+	Password       string    `json:"password" binding:"required"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }

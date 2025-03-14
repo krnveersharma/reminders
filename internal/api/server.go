@@ -8,6 +8,7 @@ import (
 	"github.com/reminders/config"
 	usercontrollers "github.com/reminders/controllers/userControllers"
 	"github.com/reminders/internal/domain"
+	"github.com/reminders/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,9 +21,10 @@ func StartServer(config config.AppConfig) {
 		log.Fatalf("Error in connecting DB: %v", err.Error())
 	}
 
-	SetupRoutes(app, db)
+	SetupRoutes(app, db, config)
 
 	err = db.AutoMigrate(&domain.User{})
+	models.MigrateDB(db)
 	if err != nil {
 		log.Fatalf("Error in migrating: %v", err)
 	}
@@ -30,7 +32,7 @@ func StartServer(config config.AppConfig) {
 	app.Run(fmt.Sprintf(":%v", config.ServerPort))
 }
 
-func SetupRoutes(app *gin.Engine, db *gorm.DB) {
+func SetupRoutes(app *gin.Engine, db *gorm.DB, config config.AppConfig) {
 	userRoutes := app.Group("/users")
-	usercontrollers.SetUpUserRoutes(userRoutes, db)
+	usercontrollers.SetUpUserRoutes(userRoutes, db, config.Secret)
 }
