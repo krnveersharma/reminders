@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/reminders/config"
 	usercontrollers "github.com/reminders/controllers/userControllers"
-	"github.com/reminders/internal/domain"
 	"github.com/reminders/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -23,7 +22,7 @@ func StartServer(config config.AppConfig) {
 
 	SetupRoutes(app, db, config)
 
-	err = db.AutoMigrate(&domain.User{})
+	err = db.AutoMigrate(&models.User{})
 	models.MigrateDB(db)
 	if err != nil {
 		log.Fatalf("Error in migrating: %v", err)
