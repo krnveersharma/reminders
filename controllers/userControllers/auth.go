@@ -61,14 +61,22 @@ func getUser(email string, db *gorm.DB) (models.User, error) {
 }
 
 func editUserInfo(user models.User, db *gorm.DB) error {
-	_, err := getUser(user.Email, db)
+	existingUser, err := getUser(user.Email, db)
 	if err != nil {
 		fmt.Errorf("error in finding user: %s", err.Error())
 		return errors.New("No user found")
 	}
 
-	query := "UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, app_password = ?, whatsapp_number = ?, plan_id = ?, updated_at= ? where email =?"
-	result := db.Exec(query, user.FirstName, user.LastName, user.Email, user.Phone, user.AppPassword, user.WhatsappNumber, user.PlanID, time.Now(), user.Email)
+	existingUser.FirstName = user.FirstName
+	existingUser.LastName = user.LastName
+	existingUser.Email = user.Email
+	existingUser.Phone = user.Phone
+	existingUser.AppPassword = user.AppPassword
+	existingUser.WhatsappNumber = user.WhatsappNumber
+	existingUser.PlanID = user.PlanID
+	existingUser.UpdatedAt = time.Now()
+
+	result := db.Save(&existingUser)
 	if result.Error != nil {
 		return result.Error
 	}

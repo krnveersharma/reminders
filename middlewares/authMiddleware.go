@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/reminders/models"
 	"gorm.io/gorm"
 )
 
@@ -45,9 +46,16 @@ func (m *MiddlewareVerify) UserAuth(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("Claims are:", claims)
+	query := "SELECT * FROM users WHERE id = ?"
+	var user models.User
 
-	ctx.Set("user", claims)
+	if err := m.DB.Raw(query, claims["id"]).Scan(&user).Error; err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.Set("user", user)
 
 	ctx.Next()
 }
