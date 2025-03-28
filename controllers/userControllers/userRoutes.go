@@ -31,6 +31,7 @@ func SetUpUserRoutes(router *gin.RouterGroup, db *gorm.DB, secret string) {
 	privateRoutes := router.Group("/verify", setupMiddleware.UserAuth)
 	router.POST("/register", routes.RegisterUser)
 	router.POST("/login", routes.login)
+	router.GET("/is-user", routes.IsUser)
 	privateRoutes.PUT("/edit-user", routes.editUser)
 }
 
@@ -116,4 +117,17 @@ func createToken(user models.User, secret string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (r *userRoutes) IsUser(ctx *gin.Context) {
+	user, found := ctx.Get("user")
+	if !found {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Please login first",
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
 }
