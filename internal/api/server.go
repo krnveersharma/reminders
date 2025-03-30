@@ -3,7 +3,9 @@ package api
 import (
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/reminders/config"
 	remindercontroller "github.com/reminders/controllers/reminderController"
@@ -22,7 +24,13 @@ func StartServer(config config.AppConfig) {
 	if err != nil {
 		log.Fatalf("Error in connecting DB: %v", err.Error())
 	}
-
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	SetupRoutes(app, db, config)
 
 	err = db.AutoMigrate(&models.User{})

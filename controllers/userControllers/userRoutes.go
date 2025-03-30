@@ -31,7 +31,7 @@ func SetUpUserRoutes(router *gin.RouterGroup, db *gorm.DB, secret string) {
 	privateRoutes := router.Group("/verify", setupMiddleware.UserAuth)
 	router.POST("/register", routes.RegisterUser)
 	router.POST("/login", routes.login)
-	router.GET("/is-user", routes.IsUser)
+	privateRoutes.GET("/is-user", routes.IsUser)
 	privateRoutes.PUT("/edit-user", routes.editUser)
 }
 
