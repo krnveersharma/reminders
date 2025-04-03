@@ -45,7 +45,7 @@ func getDataFromDB(db *gorm.DB) {
 	for i := 0; i < len(reminders); i++ {
 		if reminders[i].ReminderType == "email" {
 			fmt.Printf("user is:%+v\n", reminders[i].User)
-			sendUsingSMTP(reminders[i].User.Email, reminders[i].RecieverInfo, reminders[i].User.AppPassword, reminders[i].Data)
+			sendUsingSMTP(reminders[i].User.Email, reminders[i].RecieverInfo, reminders[i].User.AppPassword, reminders[i].Data, reminders[i].DataType)
 		}
 	}
 }
