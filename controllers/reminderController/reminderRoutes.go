@@ -22,6 +22,7 @@ func SetupReminderRoutes(router *gin.RouterGroup, db *gorm.DB, secret string) {
 	}
 	router.POST("/add-reminder", routes.addReminder)
 	router.POST("/add-draft", routes.saveDraft)
+	router.GET("/get-drafts", routes.getDrafts)
 }
 
 func (r *ReminderRoutes) addReminder(ctx *gin.Context) {
@@ -104,4 +105,34 @@ func (r *ReminderRoutes) saveDraft(ctx *gin.Context) {
 		"message": "Added reminder Successfuly",
 	})
 	return
+}
+
+func (r *ReminderRoutes) getDrafts(ctx *gin.Context) {
+	var data []dto.Draft
+
+	userVal, found := ctx.Get("user")
+	if !found {
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"error": "please login first",
+		})
+	}
+
+	user, ok := userVal.(models.User)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid user session",
+		})
+		return
+	}
+
+	if err := r.DB.Where("user_id = ?", user.ID).Find(&data).Error; err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"drafts": data,
+	})
 }
