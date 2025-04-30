@@ -8,7 +8,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/reminders/config"
+	dashboardcontroller "github.com/reminders/controllers/dashBoardController"
 	remindercontroller "github.com/reminders/controllers/reminderController"
+	SSEDashboardController "github.com/reminders/controllers/sse-dashboard"
 	usercontrollers "github.com/reminders/controllers/userControllers"
 	"github.com/reminders/middlewares"
 	"github.com/reminders/models"
@@ -27,7 +29,7 @@ func StartServer(config config.AppConfig) {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
@@ -57,4 +59,10 @@ func SetupRoutes(app *gin.Engine, db *gorm.DB, config config.AppConfig) {
 	middleware := middlewares.SetUpMiddleware(db, config.Secret)
 	reminderRoutes := app.Group("/reminder", middleware.UserAuth)
 	remindercontroller.SetupReminderRoutes(reminderRoutes, db, config.Secret)
+
+	dashBoardRoutes := app.Group("/dashboard")
+	dashboardcontroller.SetUpDashBoardRoutes(db, config.Secret, dashBoardRoutes)
+
+	sseDashBoardRoutes := app.Group("/sse-dashboard")
+	SSEDashboardController.SetUpSSEDashboardRoutes(sseDashBoardRoutes)
 }

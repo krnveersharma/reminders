@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	dashboardcontroller "github.com/reminders/controllers/dashBoardController"
+	"github.com/reminders/controllers/sse-dashboard/clients"
 	"github.com/reminders/internal/dto"
 	"github.com/reminders/models"
 	"gorm.io/gorm"
@@ -61,6 +63,10 @@ func (r *ReminderRoutes) addReminder(ctx *gin.Context) {
 		})
 		return
 	}
+
+	dashboardcontroller.TotalReminders += 1
+	clients.BroadCastMessage(dashboardcontroller.TotalReminders)
+	fmt.Printf("broadcasted message \n")
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Added reminder Successfuly",
