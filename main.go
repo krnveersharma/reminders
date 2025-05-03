@@ -5,6 +5,7 @@ import (
 
 	"github.com/reminders/config"
 	"github.com/reminders/internal/api"
+	"github.com/reminders/internal/redis"
 )
 
 func main() {
@@ -12,6 +13,9 @@ func main() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+
+	setupRedis := redis.SetupRedis(config.RedisAddress, config.RedisPassword)
+	setupRedis.InitRedis()
 
 	api.StartServer(config)
 }

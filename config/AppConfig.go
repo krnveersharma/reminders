@@ -8,9 +8,11 @@ import (
 )
 
 type AppConfig struct {
-	ServerPort string
-	Dsn        string
-	Secret     string
+	ServerPort    string
+	Dsn           string
+	Secret        string
+	RedisAddress  string
+	RedisPassword string
 }
 
 func SetupEnv() (cfg AppConfig, err error) {
@@ -31,9 +33,14 @@ func SetupEnv() (cfg AppConfig, err error) {
 		return AppConfig{}, errors.New("no jwt token exist")
 	}
 
+	redisAddress := os.Getenv("REDIS_ADDR")
+	redisPassword := os.Getenv("REDIS_PASS")
+
 	return AppConfig{
-		ServerPort: httpPort,
-		Dsn:        dsn,
-		Secret:     secret,
+		ServerPort:    httpPort,
+		Dsn:           dsn,
+		Secret:        secret,
+		RedisAddress:  redisAddress,
+		RedisPassword: redisPassword,
 	}, nil
 }

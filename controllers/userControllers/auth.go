@@ -67,6 +67,9 @@ func editUserInfo(user models.User, db *gorm.DB) error {
 		return errors.New("No user found")
 	}
 
+	if user.PlanID != existingUser.PlanID {
+		existingUser.UpdatedAt = time.Now()
+	}
 	existingUser.FirstName = user.FirstName
 	existingUser.LastName = user.LastName
 	existingUser.Email = user.Email
