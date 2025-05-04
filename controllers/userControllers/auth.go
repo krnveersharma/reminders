@@ -60,7 +60,7 @@ func getUser(email string, db *gorm.DB) (models.User, error) {
 	return existingUser, nil
 }
 
-func editUserInfo(user models.User, db *gorm.DB) error {
+func EditUserInfo(user models.User, db *gorm.DB) error {
 	existingUser, err := getUser(user.Email, db)
 	if err != nil {
 		fmt.Errorf("error in finding user: %s", err.Error())
@@ -78,6 +78,9 @@ func editUserInfo(user models.User, db *gorm.DB) error {
 	existingUser.WhatsappNumber = user.WhatsappNumber
 	existingUser.PlanID = user.PlanID
 	existingUser.UpdatedAt = time.Now()
+	existingUser.LowRemindersUtilized = user.LowRemindersUtilized
+	existingUser.MediumRemindersUtilized = user.MediumRemindersUtilized
+	existingUser.HighRemindersUtilized = user.HighRemindersUtilized
 
 	result := db.Save(&existingUser)
 	if result.Error != nil {

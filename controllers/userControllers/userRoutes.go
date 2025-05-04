@@ -88,7 +88,7 @@ func (r *userRoutes) editUser(ctx *gin.Context) {
 		return
 	}
 
-	err := editUserInfo(user, r.db)
+	err := EditUserInfo(user, r.db)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),

@@ -7,8 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	dashboardcontroller "github.com/reminders/controllers/dashBoardController"
 	"github.com/reminders/controllers/sse-dashboard/clients"
+	usercontrollers "github.com/reminders/controllers/userControllers"
 	"github.com/reminders/internal/dto"
 	"github.com/reminders/models"
+	"github.com/reminders/utils"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +30,8 @@ func SetupReminderRoutes(router *gin.RouterGroup, db *gorm.DB, secret string) {
 }
 
 func (r *ReminderRoutes) addReminder(ctx *gin.Context) {
+	var lowReminders, mediumReminders, highReminders uint
+
 	userVal, found := ctx.Get("user")
 	if !found {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -44,12 +48,30 @@ func (r *ReminderRoutes) addReminder(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Printf("user id is:%d\n", user.ID)
+	lowReminders = user.LowRemindersUtilized
+	mediumReminders = user.MediumRemindersUtilized
+	highReminders = user.HighRemindersUtilized
+
+	plans, err := utils.GetPlanDetails(r.DB)
+	if err != nil {
+		fmt.Printf("unable to get plan details from redis")
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to process your request right now",
+		})
+		return
+	}
 
 	var reminderData dto.Reminder
 	if err := ctx.ShouldBindBodyWithJSON(&reminderData); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "Please enter correct information",
+		})
+		return
+	}
+
+	if user.LowRemindersUtilized == uint(plans.LowReminders) || user.MediumRemindersUtilized == uint(plans.MediumReminders) || user.HighRemindersUtilized == uint(plans.HighReminders) {
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"error": "credits utilized, please update your plan!",
 		})
 		return
 	}
@@ -60,6 +82,25 @@ func (r *ReminderRoutes) addReminder(ctx *gin.Context) {
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": result.Error,
+		})
+		return
+	}
+
+	if reminderData.Priority == "low" {
+		lowReminders += 1
+	} else if reminderData.Priority == "medium" {
+		mediumReminders += 1
+	} else {
+		highReminders += 1
+	}
+
+	user.LowRemindersUtilized = lowReminders
+	user.MediumRemindersUtilized = mediumReminders
+	user.HighRemindersUtilized = highReminders
+	err = usercontrollers.EditUserInfo(user, r.DB)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
