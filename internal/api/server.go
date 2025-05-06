@@ -35,14 +35,18 @@ func StartServer(config config.AppConfig) {
 	}))
 	SetupRoutes(app, db, config)
 
+	models.MigrateDB(db)
+	models.MigrateReminder(db)
+
 	err = db.AutoMigrate(&models.User{})
 	if err != nil {
 		log.Fatalf("Error in migrating: %v", err)
 	}
-	models.MigrateDB(db)
-	models.MigrateReminder(db)
 	err = db.AutoMigrate(&models.Draft{})
-
+	if err != nil {
+		log.Fatalf("Error in migrating: %v", err)
+	}
+	err = db.AutoMigrate(&models.Order{})
 	if err != nil {
 		log.Fatalf("Error in migrating: %v", err)
 	}
