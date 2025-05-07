@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/reminders/config"
 	dashboardcontroller "github.com/reminders/controllers/dashBoardController"
+	paymentroutes "github.com/reminders/controllers/paymentRoutes"
 	remindercontroller "github.com/reminders/controllers/reminderController"
 	SSEDashboardController "github.com/reminders/controllers/sse-dashboard"
 	usercontrollers "github.com/reminders/controllers/userControllers"
@@ -69,4 +70,7 @@ func SetupRoutes(app *gin.Engine, db *gorm.DB, config config.AppConfig) {
 
 	sseDashBoardRoutes := app.Group("/sse-dashboard")
 	SSEDashboardController.SetUpSSEDashboardRoutes(sseDashBoardRoutes)
+
+	paymentRoutes := app.Group("/payments", middleware.UserAuth)
+	paymentroutes.SetupPaymentRoutes(paymentRoutes, db, config.RazorpayKeyId, config.RazorpayKeySecret)
 }

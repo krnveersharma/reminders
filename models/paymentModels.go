@@ -6,7 +6,7 @@ type Order struct {
 	ID        uint      `gorm:"primaryKey"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	OrderId   string    `json:"order_id" gorm:"uniqueIndex"`
+	OrderId   uint      `json:"order_id" gorm:"uniqueIndex;autoIncrement"`
 	PaymentId string    `json:"payment_id"`
 	Signature string    `json:"signature"`
 	Amount    int64     `json:"amount"`

@@ -1,6 +1,9 @@
 package paymentroutes
 
 import (
+	"bytes"
+	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -16,7 +19,6 @@ type paymentInfo struct {
 }
 
 type orderRequestSchema struct {
-	OrderId  string
 	Amount   int64
 	Currency string
 }
@@ -28,7 +30,7 @@ func setupPaymentInfo(DB *gorm.DB, apiKey, keySecret string) paymentInfo {
 	}
 }
 
-func SetupPaymentRoutes(route *gin.Engine, db *gorm.DB, apiKey, keySecret string) {
+func SetupPaymentRoutes(route *gin.RouterGroup, db *gorm.DB, apiKey, keySecret string) {
 	paymentInfo := setupPaymentInfo(db, apiKey, keySecret)
 	route.POST("/create-order", paymentInfo.createOrderHandler)
 }
@@ -57,8 +59,33 @@ func (p *paymentInfo) createOrderHandler(ctx *gin.Context) {
 		return
 	}
 
+	body, _ := json.Marshal(data)
+	//get razorpay order id
+	req, err := http.NewRequest("POST", "https://api.razorpay.com/v1/orders", bytes.NewBuffer(body))
+	if err != nil {
+		log.Fatalf("Error creating request: %v", err)
+		return
+	}
+	req.SetBasicAuth(p.KeyId, p.KeySecret)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("error making api request %v:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	var res map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&res)
+	if err != nil {
+		log.Fatalf("Error decoding response: %v", err)
+		return
+	}
+	orderId := res["id"].(string)
+
 	query := "INSERT INTO orders(created_at,updated_at,order_id,amount,currency,user_id) VALUES (?,?,?,?,?,?)"
-	result := p.DB.Exec(query, time.Now(), time.Now(), data.OrderId, data.Amount, data.Currency, user.ID)
+	result := p.DB.Exec(query, time.Now(), time.Now(), orderId, data.Amount, data.Currency, user.ID)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": result.Error,
@@ -67,6 +94,6 @@ func (p *paymentInfo) createOrderHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": data.OrderId,
+		"message": orderId,
 	})
 }
